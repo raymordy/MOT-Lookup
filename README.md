@@ -23,8 +23,6 @@ The solution targets .NET Core 3.1 and uses the packages below which will requir
 
 ### Packages Used
 
-- Newtonsoft.Json
-  - Provides deserialization for API response content
 - Microsoft.Extensions.DependencyInjection
   - Dependency Injection container
 
