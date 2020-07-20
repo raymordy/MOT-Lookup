@@ -1,9 +1,10 @@
 ﻿using MOT_Lookup.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MOT_Lookup.Services
@@ -16,7 +17,7 @@ namespace MOT_Lookup.Services
 
         public async Task<Vehicle> CreateApiRequestAsync(string registration)
         {
-            var vehicleRegistration = CleanInput(registration);
+            var vehicleRegistration = ValidateInput(registration);
 
             var request = new HttpRequestMessage
             {
@@ -31,21 +32,31 @@ namespace MOT_Lookup.Services
 
             if (response.IsSuccessStatusCode)
             {
-                var vehicleDetails = JsonConvert.DeserializeObject<IEnumerable<Vehicle>>(await response.Content.ReadAsStringAsync());
-
+                var serializeOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true
+                };
+                var vehicleDetails = await JsonSerializer.DeserializeAsync<IEnumerable<Vehicle>>(await response.Content.ReadAsStreamAsync(), serializeOptions);
+                
                 return vehicleDetails.FirstOrDefault();
             }
             else
             {
                 throw new Exception(response.StatusCode + " " + response.Content);
             }
-
-            
         }
 
-        private string CleanInput(string registration)
+        private string ValidateInput(string registration)
         {
-            return registration.Replace(" ", "");
+            Regex rgx = new Regex("[^a-zA-Z0-9 -]");
+            var validatedInput = rgx.Replace(registration, "");
+            validatedInput = validatedInput.Replace(" ", "");
+
+            if (validatedInput.Length > 7)
+                throw new Exception("Registration too long");
+
+            return validatedInput;
         }
 
     }

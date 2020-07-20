@@ -3,6 +3,7 @@ using MOT_Lookup.Models;
 using MOT_Lookup.Services;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MOT_Lookup
 {
@@ -10,23 +11,23 @@ namespace MOT_Lookup
     {
         private static IServiceProvider serviceProvider;
 
-        static void Main()
+        static async Task Main(string[] args)
         {
             //setup services
             ConfigureServices();
             var motService = serviceProvider.GetService<IMotLookupService>();
-            
+
             Vehicle vehicle;
 
 
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Please enter registration of vehicle to lookup:");
+                Console.WriteLine("Please enter a vehicle registration to lookup: ");
                 var registration = Console.ReadLine();
                 try
                 {
-                    vehicle = motService.CreateApiRequestAsync(registration).GetAwaiter().GetResult();
+                    vehicle = await motService.CreateApiRequestAsync(registration);
                     FormatVehicleOutput(vehicle, registration);
                 }
                 catch (Exception)
@@ -38,13 +39,13 @@ namespace MOT_Lookup
                 do
                 {
                     Console.WriteLine("\n\nWould you like to lookup another vehicle? (y/n)");
-                    response = Console.ReadKey(false).Key;   
+                    response = Console.ReadKey(false).Key;
                     if (response != ConsoleKey.Enter)
                         Console.WriteLine();
 
                 } while (response != ConsoleKey.Y && response != ConsoleKey.N);
 
-                         
+
                 if (response == ConsoleKey.N)
                     break;
             }
